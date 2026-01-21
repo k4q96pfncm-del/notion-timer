@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soft Pastel Timer</title>
+    <!-- Google Pixel Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: transparent;
+            background-image: none;
+            /* 텍스트 색상: 진한 보라 -> 부드러운 라벤더색 (#a855f7) */
+            color: #a855f7; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Retro Window Style (Softer Version) */
+        .retro-window {
+            background-color: #ffffff; /* 완전 흰색 배경으로 더 깨끗하게 */
+            /* 테두리: 아주 연한 보라 (#e9d5ff) */
+            border: 3px solid #e9d5ff; 
+            /* 그림자: 조금 더 진한 연보라 (#d8b4fe) */
+            box-shadow: 6px 6px 0px #d8b4fe; 
+            width: 200px;
+            position: relative;
+            border-radius: 8px; /* 둥글기 유지 */
+        }
+
+        .title-bar {
+            /* 타이틀바: 테두리와 같은 연한 보라 */
+            background-color: #e9d5ff; 
+            /* 타이틀 텍스트: 흰색 대신 부드러운 보라색으로 가독성 확보 */
+            color: #a855f7; 
+            padding: 6px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8px;
+            /* 타이틀바 하단 선: 그림자 색상과 통일 */
+            border-bottom: 2px solid #d8b4fe; 
+        }
+
+        .close-btn {
+            width: 10px;
+            height: 10px;
+            background-color: #ffffff;
+            /* 버튼 테두리: 부드러운 보라 */
+            border: 2px solid #d8b4fe; 
+            display: inline-block;
+            box-shadow: inset -1px -1px 0 #d8b4fe;
+            border-radius: 50%; /* 버튼을 동그랗게 변경해서 더 귀엽게 */
+        }
+
+        /* Blinking Colon */
+        .blink {
+            animation: blinker 1s step-end infinite;
+            color: #e9d5ff; /* 깜빡이는 점을 아주 연하게 변경 */
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+        
+        .soft-glow {
+            /* 그림자 효과를 아주 은은하게 */
+            text-shadow: 2px 2px 0px #f3e8ff; 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Retro Window Container -->
+    <div class="retro-window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <span>TIMER ☁</span>
+            <div class="close-btn"></div>
+        </div>
+
+        <!-- Window Body -->
+        <div class="p-4 text-center">
+            
+            <!-- Static Label -->
+            <div class="mb-3">
+                <!-- 라벨 색상을 아주 연한 파스텔톤으로 변경 -->
+                <p class="text-[10px] text-purple-300 uppercase tracking-widest font-bold">☁ MY TASK ☁</p>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="select-none flex justify-center items-center">
+                <!-- Hours -->
+                <div class="flex flex-col items-center mx-1">
+                    <span id="hours" class="text-xl leading-none soft-glow">00</span>
+                </div>
+                
+                <span class="blink text-lg mb-1 mx-1">:</span>
+                
+                <!-- Minutes -->
+                <div class="flex flex-col items-center mx-1">
+                    <span id="minutes" class="text-xl leading-none soft-glow">00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval;
+
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+
+        function pad(number) {
+            return number.toString().padStart(2, '0');
+        }
+
+        function timeToString(time) {
+            const diffInHrs = time / 3600000;
+            const hh = Math.floor(diffInHrs);
+
+            const diffInMin = (diffInHrs - hh) * 60;
+            const mm = Math.floor(diffInMin);
+
+            return { hh: pad(hh), mm: pad(mm) };
+        }
+
+        function print(txt) {
+            hoursEl.innerHTML = txt.hh;
+            minutesEl.innerHTML = txt.mm;
+        }
+
+        // Auto Start on Load
+        window.onload = function() {
+            startTime = Date.now();
+            timerInterval = setInterval(function printTime() {
+                elapsedTime = Date.now() - startTime;
+                print(timeToString(elapsedTime));
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
