@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soft Pastel Timer</title>
-    <!-- Google Pixel Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Notion Soft Pastel Timer</title>
+    <!-- NeoDunggeunmo Font (Korean Retro Pixel Font) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@latest/neodgm/style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: 'Press Start 2P', cursive;
+            font-family: 'NeoDunggeunmo', cursive;
             background-color: transparent;
             background-image: none;
-            /* 텍스트 색상: 진한 보라 -> 부드러운 라벤더색 (#a855f7) */
             color: #a855f7; 
             display: flex;
             align-items: center;
@@ -22,47 +21,41 @@
             overflow: hidden;
         }
 
-        /* Retro Window Style (Softer Version) */
+        /* Retro Window Style */
         .retro-window {
-            background-color: #ffffff; /* 완전 흰색 배경으로 더 깨끗하게 */
-            /* 테두리: 아주 연한 보라 (#e9d5ff) */
+            background-color: #ffffff; 
             border: 3px solid #e9d5ff; 
-            /* 그림자: 조금 더 진한 연보라 (#d8b4fe) */
             box-shadow: 6px 6px 0px #d8b4fe; 
-            width: 200px;
+            width: 260px; 
             position: relative;
-            border-radius: 8px; /* 둥글기 유지 */
+            border-radius: 8px; 
         }
 
         .title-bar {
-            /* 타이틀바: 테두리와 같은 연한 보라 */
             background-color: #e9d5ff; 
-            /* 타이틀 텍스트: 흰색 대신 부드러운 보라색으로 가독성 확보 */
             color: #a855f7; 
             padding: 6px 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 8px;
-            /* 타이틀바 하단 선: 그림자 색상과 통일 */
+            font-size: 12px;
             border-bottom: 2px solid #d8b4fe; 
         }
 
         .close-btn {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             background-color: #ffffff;
-            /* 버튼 테두리: 부드러운 보라 */
             border: 2px solid #d8b4fe; 
             display: inline-block;
             box-shadow: inset -1px -1px 0 #d8b4fe;
-            border-radius: 50%; /* 버튼을 동그랗게 변경해서 더 귀엽게 */
+            border-radius: 50%; 
+            cursor: pointer;
         }
 
-        /* Blinking Colon */
         .blink {
             animation: blinker 1s step-end infinite;
-            color: #e9d5ff; /* 깜빡이는 점을 아주 연하게 변경 */
+            color: #e9d5ff; 
         }
 
         @keyframes blinker {
@@ -70,8 +63,23 @@
         }
         
         .soft-glow {
-            /* 그림자 효과를 아주 은은하게 */
             text-shadow: 2px 2px 0px #f3e8ff; 
+        }
+
+        .task-name-scroll {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            margin: 0 auto;
+            font-size: 14px;
+        }
+        
+        .status-msg {
+            font-size: 10px;
+            color: #d8b4fe;
+            min-height: 12px;
+            margin-bottom: 2px;
         }
     </style>
 </head>
@@ -81,43 +89,57 @@
     <div class="retro-window">
         <!-- Title Bar -->
         <div class="title-bar">
-            <span>TIMER ☁</span>
-            <div class="close-btn"></div>
+            <span style="margin-top: 2px;">TIMER ☁</span>
+            <div class="close-btn" onclick="fetchNotionData()"></div>
         </div>
 
         <!-- Window Body -->
         <div class="p-4 text-center">
             
-            <!-- Static Label -->
-            <div class="mb-3">
-                <!-- 라벨 색상을 아주 연한 파스텔톤으로 변경 -->
-                <p class="text-[10px] text-purple-300 uppercase tracking-widest font-bold">☁ MY TASK ☁</p>
+            <!-- Dynamic Task Label -->
+            <div class="mb-4">
+                <p id="status-message" class="status-msg">CONNECTING...</p>
+                <div class="h-6 flex items-center justify-center mt-1">
+                    <p id="task-name" class="text-purple-400 uppercase tracking-widest task-name-scroll">
+                        MY TASK
+                    </p>
+                </div>
             </div>
 
             <!-- Timer Display -->
-            <div class="select-none flex justify-center items-center">
+            <div class="select-none flex justify-center items-center mb-1">
                 <!-- Hours -->
                 <div class="flex flex-col items-center mx-1">
-                    <span id="hours" class="text-xl leading-none soft-glow">00</span>
+                    <span id="hours" class="text-3xl leading-none soft-glow">00</span>
                 </div>
                 
-                <span class="blink text-lg mb-1 mx-1">:</span>
+                <span class="blink text-2xl mb-1 mx-1">:</span>
                 
                 <!-- Minutes -->
                 <div class="flex flex-col items-center mx-1">
-                    <span id="minutes" class="text-xl leading-none soft-glow">00</span>
+                    <span id="minutes" class="text-3xl leading-none soft-glow">00</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // ⚙️ Vercel 배포용 설정
+        const TEST_MODE = true; 
+        const PROPERTY_NAMES = {
+            STATUS: 'sStask',       
+            START_TIME: '시작시간', 
+            TITLE: '할일명'        
+        };
+
         let startTime = 0;
         let elapsedTime = 0;
         let timerInterval;
 
         const hoursEl = document.getElementById('hours');
         const minutesEl = document.getElementById('minutes');
+        const taskNameEl = document.getElementById('task-name');
+        const statusMsgEl = document.getElementById('status-message');
 
         function pad(number) {
             return number.toString().padStart(2, '0');
@@ -126,10 +148,8 @@
         function timeToString(time) {
             const diffInHrs = time / 3600000;
             const hh = Math.floor(diffInHrs);
-
             const diffInMin = (diffInHrs - hh) * 60;
             const mm = Math.floor(diffInMin);
-
             return { hh: pad(hh), mm: pad(mm) };
         }
 
@@ -138,13 +158,76 @@
             minutesEl.innerHTML = txt.mm;
         }
 
-        // Auto Start on Load
-        window.onload = function() {
-            startTime = Date.now();
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(function printTime() {
                 elapsedTime = Date.now() - startTime;
+                if (elapsedTime < 0) elapsedTime = 0;
                 print(timeToString(elapsedTime));
-            }, 1000);
+            }, 1000); 
+        }
+
+        async function fetchNotionData() {
+            statusMsgEl.textContent = "SYNCING...";
+            
+            if (TEST_MODE) {
+                setTimeout(() => {
+                    console.log("Running in TEST MODE");
+                    const mockTitle = "코딩 공부하기";
+                    const mockStartTime = new Date(Date.now() - (1000 * 60 * 90)).getTime(); 
+                    updateUI(mockTitle, mockStartTime);
+                    statusMsgEl.textContent = ""; 
+                }, 1000);
+                return;
+            }
+
+            const url = '/api/notion';
+            const filterPayload = { propertyNames: PROPERTY_NAMES };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(filterPayload)
+                });
+
+                if (!response.ok) throw new Error(`API error! status: ${response.status}`);
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    const page = data.results[0];
+                    const titleProps = page.properties[PROPERTY_NAMES.TITLE].title;
+                    const titleText = titleProps.length > 0 ? titleProps[0].plain_text : "No Title";
+                    const dateProp = page.properties[PROPERTY_NAMES.START_TIME].date;
+                    const startDateString = dateProp.start;
+                    const startTimeValue = new Date(startDateString).getTime();
+
+                    updateUI(titleText, startTimeValue);
+                    statusMsgEl.textContent = ""; 
+                } else {
+                    taskNameEl.innerText = "NO TASK";
+                    statusMsgEl.textContent = "IDLE"; 
+                    if (timerInterval) clearInterval(timerInterval);
+                    print({hh: "00", mm: "00"});
+                }
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                statusMsgEl.textContent = "ERROR";
+                taskNameEl.innerText = "OFFLINE";
+                startTime = Date.now();
+                startTimer();
+            }
+        }
+
+        function updateUI(title, startTimestamp) {
+            taskNameEl.innerText = title;
+            startTime = startTimestamp;
+            startTimer();
+        }
+
+        window.onload = function() {
+            fetchNotionData();
         };
     </script>
 </body>
